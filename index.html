@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Día 5</title>
+<style>
+  :root {
+    --fondo: #060607;
+    --fondo-profundo: #020203;
+    --luz: 205, 220, 240;
+    --texto: #c3cbd4;
+    --gris: #8b929b;
+    --gris-borde: #1b1d22;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--fondo-profundo); overflow: hidden; }
+
+  .escena {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, #0b0d10 0%, var(--fondo) 40%, var(--fondo-profundo) 100%);
+  }
+
+  /* ======= TEXTO SUPERIOR ======= */
+  .texto-superior {
+    position: absolute;
+    top: max(4vh, env(safe-area-inset-top));
+    left: 0; right: 0;
+    text-align: center;
+    padding: 0 24px;
+    z-index: 8;
+    color: var(--texto);
+    font-family: Georgia, "Times New Roman", serif;
+    letter-spacing: 0.04em;
+    text-shadow: 0 0 18px rgba(0,0,0,.9);
+  }
+  .texto-superior p {
+    max-width: 680px;
+    margin: 0 auto;
+    font-size: clamp(0.88rem, 1.5vw, 1.1rem);
+    line-height: 1.65;
+    opacity: .85;
+  }
+  .texto-superior p + p { margin-top: 0.9em; }
+
+  /* ======= LUZ SUPERIOR Y RAYOS ======= */
+  .resplandor {
+    position: absolute; top: -20%; left: 50%;
+    width: 120%; height: 55%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at 50% 0%, rgba(var(--luz), .22) 0%, rgba(var(--luz), .06) 40%, transparent 70%);
+    z-index: 1; pointer-events: none;
+  }
+  .rayos { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+  .rayo {
+    position: absolute;
+    top: -15%;
+    height: 105%;
+    background: linear-gradient(to bottom,
+      rgba(var(--luz), 0.50) 0%,
+      rgba(var(--luz), 0.20) 40%,
+      rgba(var(--luz), 0) 100%);
+    filter: blur(6px);
+    transform-origin: top center;
+    animation: respirar 8s ease-in-out infinite;
+    mix-blend-mode: screen;
+  }
+  .r1 { left: 14%; width: 4.5%; --giro: 17deg;  animation-delay: 0s;   }
+  .r2 { left: 33%; width: 2.2%; --giro: 8deg;   animation-delay: 2.5s; }
+  .r3 { left: 48%; width: 5.5%; --giro: -2deg;  animation-delay: 1s;   }
+  .r4 { left: 66%; width: 3%;   --giro: -11deg; animation-delay: 4s;   }
+  .r5 { left: 82%; width: 4%;   --giro: -19deg; animation-delay: 5.5s; }
+
+  /* ======= CANVAS: entorno que "avanza" hacia arriba ======= */
+  #caida { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
+
+  /* ======= HUMANITO (calcado de la referencia, fijo en el centro) ======= */
+  .figura {
+    position: absolute;
+    left: 50%;
+    top: 66%;
+    width: clamp(180px, 28vw, 330px);
+    aspect-ratio: 700 / 580;
+    z-index: 5;
+    transform: translate(-50%, -50%);
+    animation: flota 6s ease-in-out infinite;
+    filter: drop-shadow(0 0 22px rgba(var(--luz), .12));
+  }
+  .figura svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .pose { transform-origin: 420px 450px; animation: giro 9s ease-in-out infinite; }
+  .brazoA  { transform-origin: 565px 455px; animation: bA 2.3s ease-in-out infinite alternate; }
+  .brazoB  { transform-origin: 515px 470px; animation: bB 1.8s ease-in-out infinite alternate; }
+  .pierna1 { transform-origin: 395px 440px; animation: p1 2.8s ease-in-out infinite alternate; }
+  .pierna2 { transform-origin: 300px 400px; animation: p2 2.2s ease-in-out infinite alternate; }
+  @keyframes giro  { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+  @keyframes flota { 0%,100% { transform: translate(-50%, -50%); } 50% { transform: translate(-50%, -47%); } }
+  @keyframes bA { from { transform: rotate(-9deg); }  to { transform: rotate(11deg); } }
+  @keyframes bB { from { transform: rotate(10deg); }  to { transform: rotate(-12deg); } }
+  @keyframes p1 { from { transform: rotate(-7deg); }  to { transform: rotate(8deg); } }
+  @keyframes p2 { from { transform: rotate(8deg); }   to { transform: rotate(-9deg); } }
+
+  /* viñeta */
+  .vineta {
+    position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 55%, transparent 30%, rgba(0,0,0,.8) 100%);
+  }
+
+  @keyframes respirar {
+    0%, 100% { opacity: .45; transform: rotate(var(--giro)); }
+    50%      { opacity: 1;   transform: rotate(calc(var(--giro) + 1.5deg)); }
+  }
+  @keyframes aparecer { to { opacity: 1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .figura, .rayo, .texto-superior { animation: none; opacity: 1; }
+    .rayo { transform: rotate(var(--giro)); opacity: .7; }
+  }
+
+  .aviso {
+    position: absolute;
+    bottom: max(4vh, env(safe-area-inset-bottom));
+    left: 0; right: 0;
+    text-align: center;
+    z-index: 9;
+    color: var(--texto);
+    font: 0.8rem Georgia, serif;
+    opacity: 0;
+    transition: opacity 1s;
+    pointer-events: none;
+  }
+  .aviso.visible { opacity: .5; }
+</style>
+</head>
+<body>
+
+<div class="escena">
+
+  <!-- ✏️ TEXTO SUPERIOR: edítalo aquí -->
+  <div class="texto-superior">
+    <p>La verdad hoy no sé qué decir. Pasé de antes, de sobrepensar todo, a estar completamente en blanco.</p>
+    <p>Pero si sé algo es que te quiero, Nicole; realmente lo hago. No puedo pensar en algo más porque es lo único que siento ahorita, y lo seguiré diciendo: te quiero, Nicole.</p>
+    <p>Pero hoy realmente no tengo palabras en el corazón ni en la cabeza.</p>
+  </div>
+
+  <div class="resplandor"></div>
+
+  <!-- Rayos de luz -->
+  <div class="rayos">
+    <div class="rayo r1"></div>
+    <div class="rayo r2"></div>
+    <div class="rayo r3"></div>
+    <div class="rayo r4"></div>
+    <div class="rayo r5"></div>
+  </div>
+
+  <!-- Líneas y partículas que suben (efecto de caída) -->
+  <canvas id="caida"></canvas>
+
+  <!-- Humanito gris, estilo pictograma, brazos arriba cayendo -->
+  <div class="figura">
+    <svg viewBox="60 60 700 580" xmlns="http://www.w3.org/2000/svg" aria-label="Persona cayendo al vacío">
+      <defs>
+        <linearGradient id="gris" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a3aab3"/><stop offset="1" stop-color="#6a717a"/></linearGradient>
+        <path id="sil" d="M120,165 L115,173 L104,209 L89,237 L88,243 L85,248 L84,260 L86,265 L92,269 L116,269 L126,273 L129,276 L131,284 L138,291 L165,305 L211,336 L227,344 L247,350 L257,355 L270,367 L278,381 L279,388 L284,400 L284,406 L294,439 L295,450 L299,459 L300,471 L303,477 L304,488 L309,503 L309,511 L313,521 L315,534 L318,539 L319,546 L325,557 L331,565 L343,576 L343,580 L339,584 L339,587 L343,591 L356,594 L367,599 L378,599 L391,604 L402,604 L415,608 L434,609 L446,612 L467,614 L536,614 L556,610 L572,609 L582,604 L586,604 L601,596 L618,581 L629,565 L631,558 L636,555 L641,557 L652,569 L666,569 L676,576 L688,576 L692,574 L704,575 L712,567 L717,566 L729,559 L735,547 L739,528 L740,482 L734,473 L729,457 L718,451 L712,438 L705,429 L679,429 L675,431 L673,438 L669,443 L638,440 L631,447 L612,459 L608,459 L600,448 L595,436 L593,421 L582,407 L579,395 L575,388 L576,354 L574,336 L570,324 L570,306 L568,296 L570,281 L561,271 L561,266 L565,257 L574,250 L575,241 L578,235 L584,229 L585,224 L582,221 L578,220 L574,222 L569,222 L567,220 L566,207 L568,204 L568,197 L565,193 L558,193 L556,191 L554,182 L548,181 L546,183 L546,200 L543,204 L539,204 L532,194 L529,195 L529,203 L534,213 L531,219 L525,218 L518,212 L515,212 L513,215 L514,218 L524,228 L528,236 L529,249 L538,274 L533,283 L533,315 L529,343 L529,372 L526,376 L522,376 L519,372 L519,369 L515,362 L515,353 L511,345 L509,331 L500,317 L500,292 L503,270 L499,268 L493,274 L488,274 L472,250 L470,250 L465,256 L456,255 L456,265 L449,269 L449,273 L452,277 L452,282 L446,287 L446,290 L466,305 L476,315 L481,324 L479,340 L482,348 L485,368 L488,375 L489,388 L493,400 L494,418 L500,440 L509,462 L513,468 L514,475 L518,480 L518,484 L514,487 L496,487 L481,485 L472,480 L466,480 L462,478 L456,471 L444,439 L438,435 L424,436 L421,432 L418,374 L415,352 L416,308 L414,303 L407,295 L402,283 L398,279 L370,263 L361,253 L355,251 L351,247 L350,243 L346,239 L342,238 L337,232 L328,229 L317,215 L311,213 L296,198 L295,194 L291,190 L284,188 L270,173 L258,172 L251,167 L246,155 L246,130 L250,115 L251,99 L256,82 L254,75 L250,73 L243,74 L235,82 L224,103 L219,117 L194,158 L190,168 L190,179 L194,184 L202,188 L215,189 L230,195 L233,200 L233,208 L235,212 L260,234 L284,263 L295,279 L315,298 L326,304 L344,322 L347,328 L345,352 L341,358 L337,358 L334,355 L318,323 L305,312 L267,299 L201,270 L159,245 L147,245 L143,243 L136,232 L134,221 L133,198 L136,182 L136,164 L131,160 L127,160Z" fill="url(#gris)"/>
+        <clipPath id="cBase"><polygon points="240,380 345,380 345,430 445,430 545,455 620,440 760,420 760,620 240,620"/></clipPath><clipPath id="cLeg1"><polygon points="170,60 280,60 445,255 445,432 345,432 345,310 170,230"/></clipPath><clipPath id="cLeg2"><polygon points="60,130 150,130 345,300 345,420 260,420 60,300"/></clipPath><clipPath id="cArmA"><polygon points="515,170 600,170 615,458 545,458 520,380"/></clipPath><clipPath id="cArmB"><polygon points="430,240 510,240 545,472 470,492 470,330"/></clipPath>
+      </defs>
+      <g class="pose">
+        <g class="pierna2"><use href="#sil" clip-path="url(#cLeg2)"/></g>
+        <g class="pierna1"><use href="#sil" clip-path="url(#cLeg1)"/></g>
+        <use href="#sil" clip-path="url(#cBase)"/>
+        <g class="brazoB"><use href="#sil" clip-path="url(#cArmB)"/></g>
+        <g class="brazoA"><use href="#sil" clip-path="url(#cArmA)"/></g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="vineta"></div>
+  <div class="aviso" id="aviso">Toca la pantalla para activar el sonido</div>
+</div>
+
+<!-- 🎵 MÚSICA: cambia "musica.mp3" por el nombre de tu archivo.
+     Coloca el archivo en la MISMA carpeta que este HTML. -->
+<audio id="musica" src="dia5.mp3" loop preload="auto" autoplay></audio>
+
+<script>
+  /* ========= MÚSICA ========= */
+  const audio = document.getElementById('musica');
+  const aviso = document.getElementById('aviso');
+  audio.volume = 0.6; // 0 a 1
+
+  function intentarReproducir() {
+    return audio.play().then(() => {
+      aviso.classList.remove('visible');
+      quitarEventos();
+      return true;
+    }).catch(() => false);
+  }
+  const eventos = ['click', 'touchstart', 'keydown', 'wheel', 'mousemove', 'pointerdown'];
+  function alInteractuar() { intentarReproducir(); }
+  function quitarEventos() { eventos.forEach(e => window.removeEventListener(e, alInteractuar)); }
+  eventos.forEach(e => window.addEventListener(e, alInteractuar, { passive: true }));
+  intentarReproducir().then(ok => { if (!ok) setTimeout(() => aviso.classList.add('visible'), 1500); });
+
+  /* ========= EFECTO DE CAÍDA ========= */
+  const cv = document.getElementById('caida');
+  const ctx = cv.getContext('2d');
+  let W, H, DPR, items = [];
+  const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function nuevo(inicial) {
+    // capa: 0 lejos (lento, tenue) ... 1 cerca (rápido, más visible)
+    const capa = Math.random();
+    return {
+      x: Math.random() * W,
+      y: inicial ? Math.random() * H : H + Math.random() * 200,
+      largo: 30 + capa * capa * 260,
+      vel: 0.35 + capa * 1.9,            // en alturas de pantalla por segundo
+      ancho: 0.6 + capa * 1.4,
+      alfa: 0.05 + capa * 0.22,
+      punto: Math.random() < 0.35        // algunas son partículas de polvo
+    };
+  }
+  function ajustar() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const n = Math.round(Math.min(110, Math.max(50, W / 12)));
+    items = Array.from({ length: n }, () => nuevo(true));
+  }
+  let ultimo = performance.now();
+  function dibujar(t) {
+    const dt = Math.min((t - ultimo) / 1000, 0.05);
+    ultimo = t;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of items) {
+      if (!reducir) p.y -= p.vel * H * 0.32 * dt;
+      if (p.y + p.largo < -10) Object.assign(p, nuevo(false));
+      if (p.punto) {
+        ctx.fillStyle = `rgba(200,215,235,${p.alfa * 1.6})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.ancho * 0.9, 0, 6.283); ctx.fill();
+      } else {
+        const g = ctx.createLinearGradient(0, p.y, 0, p.y + p.largo);
+        g.addColorStop(0, `rgba(200,215,235,0)`);
+        g.addColorStop(1, `rgba(200,215,235,${p.alfa})`);
+        ctx.strokeStyle = g; ctx.lineWidth = p.ancho; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y + p.largo); ctx.stroke();
+      }
+    }
+    requestAnimationFrame(dibujar);
+  }
+  window.addEventListener('resize', ajustar);
+  ajustar();
+  requestAnimationFrame(dibujar);
+</script>
+</body>
+</html>
